@@ -25,10 +25,40 @@ casper.start('https://www.google.com/ncr', function () {
     if (! (this.getHTML().indexOf(username) > -1)) {
         console.info('## Login ...');
         this.thenOpen('https://accounts.google.com/ServiceLogin?hl=en&continue=https://www.google.com/ncr', function() {
-            this.fillSelectors('form#gaia_loginform', {
-                'input[name="Email"]':    username,
-                'input[name="Passwd"]':    password
-            }, true);
+          casper.waitForSelector("input[name='Email']",
+             function success(){
+               this.sendKeys("input[name='Email']",username)
+             },
+             function fail(){
+                casper.die("Unable to detect email field")         ;
+             }
+          )
+            casper.waitForSelector("form#gaia_loginform input[type=submit][value='Next']",
+            function success(){
+                this.click("form#gaia_loginform input[type=submit][value='Next']");
+                console.info("NEXT");
+            },
+                function fail(){
+                casper.die("Unable to detect Next Button")         ;
+                }
+            )
+            casper.waitUntilVisible("input[name='Passwd']",
+                function success(){
+                this.sendKeys("input[name='Passwd']",password)
+                },
+                function fail(){
+                casper.die("Unable to detect password field")         ;
+                }
+            )
+            casper.waitForSelector("form#gaia_loginform input[type=submit][value='Sign in']",
+            function success(){
+                this.click("form#gaia_loginform input[type=submit][value='Sign in']");
+                console.info("Signin");
+            },
+                function fail(){
+                casper.die("Unable to find sign in button")         ;
+                }
+            )
         });
     }
 });
