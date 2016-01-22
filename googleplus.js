@@ -17,6 +17,8 @@ var casper = require('casper').create(
 username = casper.cli.get("username")
 password = casper.cli.get("password")
 text     = casper.cli.get("text")
+collection = casper.cli.get("collection")
+page_profile = casper.cli.get("page")
 
 casper.start('https://www.google.com/ncr', function () {
     this.viewport(800, 600);
@@ -25,38 +27,38 @@ casper.start('https://www.google.com/ncr', function () {
     if (! (this.getHTML().indexOf(username) > -1)) {
         console.info('## Login ...');
         this.thenOpen('https://accounts.google.com/ServiceLogin?hl=en&continue=https://www.google.com/ncr', function() {
-          casper.waitForSelector("input[name='Email']",
-             function success(){
-               this.sendKeys("input[name='Email']",username)
-             },
-             function fail(){
-                casper.die("Unable to detect email field")         ;
-             }
-          )
-            casper.waitForSelector("form#gaia_loginform input[type=submit][value='Next']",
-            function success(){
-                this.click("form#gaia_loginform input[type=submit][value='Next']");
-                console.info("NEXT");
-            },
+            casper.waitForSelector("input[name='Email']",
+                function success(){
+                    this.sendKeys("input[name='Email']",username)
+                },
                 function fail(){
-                casper.die("Unable to detect Next Button")         ;
+                    casper.die("Unable to detect email field");
+                }
+            )
+            casper.waitForSelector("form#gaia_loginform input[type=submit][value='Next']",
+                function success(){
+                    this.click("form#gaia_loginform input[type=submit][value='Next']");
+                    console.info("NEXT");
+                },
+                function fail(){
+                    casper.die("Unable to detect Next Button");
                 }
             )
             casper.waitUntilVisible("input[name='Passwd']",
                 function success(){
-                this.sendKeys("input[name='Passwd']",password)
+                    this.sendKeys("input[name='Passwd']",password)
                 },
                 function fail(){
-                casper.die("Unable to detect password field")         ;
+                    casper.die("Unable to detect password field");
                 }
             )
             casper.waitForSelector("form#gaia_loginform input[type=submit][value='Sign in']",
-            function success(){
-                this.click("form#gaia_loginform input[type=submit][value='Sign in']");
-                console.info("Signin");
-            },
+                function success(){
+                    this.click("form#gaia_loginform input[type=submit][value='Sign in']");
+                    console.info("Signin");
+                },
                 function fail(){
-                casper.die("Unable to find sign in button")         ;
+                    casper.die("Unable to find sign in button");
                 }
             )
         });
@@ -95,12 +97,29 @@ casper.waitForUrl(/google.com/g,function GoToGoogleCom(){
 },1000)
 
 casper.waitForSelector('a[href="https://plus.google.com/u/0/stream/all?hl=en"]',function(){
-    this.click('a[href="https://plus.google.com/u/0/stream/all?hl=en"]')
+    if(!collection && !page_profile){
+        plus_url="http://plus.google.com"
+    }
+    if(page_profile){
+        plus_url="https://plus.google.com/b/"+page_profile+"/"+page_profile+"/posts"
+    }
+    if(collection){
+        if(!page_profile) {
+            plus_url= "https://plus.google.com/collection/"+collection;
+        } else {
+            plus_url= "https://plus.google.com/b/"+page_profile+"/collection/"+collection;
+        }
+    }
+    console.info("GoToGoogleCom Plus")
+    this.open(plus_url);
 });
 
 casper.wait(4000);
 
-casper.withFrame('gbsf', function SubmitPostToGooglePlus() {
+casper.waitForSelector('div[guidedhelpid="sharebox_textarea"]', function SubmitPostToGooglePlus() {
+    console.info("Sharebox")
+    this.click('div[guidedhelpid="sharebox_textarea"]')
+    this.wait(2000)
     this.click('div[guidedhelpid="sharebox_editor"]')
     this.sendKeys('div[guidedhelpid="sharebox_editor"] [role="textbox"]',text + '\r\n',{keepFocus: true})
     this.wait(2000,function WaitingForShare(){
