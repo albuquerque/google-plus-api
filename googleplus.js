@@ -14,11 +14,11 @@ var casper = require('casper').create(
  * Get the variables from the cli call
  * @type {*}
  */
-username = casper.cli.get("username")
-password = casper.cli.get("password")
-text     = casper.cli.get("text")
-collection = casper.cli.get("collection")
-page_profile = casper.cli.get("page")
+username = casper.cli.raw.get("username")
+password = casper.cli.raw.get("password")
+text = casper.cli.raw.get("text")
+collection = casper.cli.raw.get("collection")
+page_profile = casper.cli.raw.get("page")
 
 casper.start('https://www.google.com/ncr', function () {
     this.viewport(800, 600);
